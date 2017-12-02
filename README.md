@@ -1,2 +1,2 @@
 # WatchDog-Miner-NVIDIA
-Watchdog for NVIDIA miners
+Watchdog for NVIDIA miners with Telegram notifications & Logs

@@ -1,0 +1,2 @@
+﻿$message = @{"chat_id" = $env:chat_id;"text" = $env:text;"parse_mode" = "Markdown";"disable_web_page_preview" = "True"}
+$request = Invoke-WebRequest -Uri "https://api.telegram.org/bot$env:token/sendMessage" -Method Post -ContentType "application/json; charset=utf-8" -Body (ConvertTo-Json -Compress -InputObject $message)

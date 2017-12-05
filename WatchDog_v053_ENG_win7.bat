@@ -85,9 +85,9 @@ ECHO.
 ECHO             Mining is working
 ECHO         %DiffTimeDay% days %DiffTimeHour% hours %DiffTimeMin% minutes
 IF %RigIssueCount% EQU 0 (
-    ECHO             Rig issues %RigIssueCount% of %RigIssueCountMax%
+    ECHO             Rig issues: %RigIssueCount% / %RigIssueCountMax%
     ) ELSE (
-    ECHO             Rig issues %RigIssueCount% of %RigIssueCountMax%
+    ECHO             Rig issues: %RigIssueCount% / %RigIssueCountMax%
 )
 ECHO.
 ECHO        Driver: %driver_version%  Limit: %delta%%%

@@ -188,7 +188,7 @@ echo.
 ECHO      Average loading of %mygpu% GPUs: %gpu_average%%%
 
 echo.
-ECHO            Our ping %ping_time% ms - OK.
+ECHO            Rig ping %ping_time% ms - OK.
 echo      It seems NO Internet problems.
 timeout /t 5 >nul
 

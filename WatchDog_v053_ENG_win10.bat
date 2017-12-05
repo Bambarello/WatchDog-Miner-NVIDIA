@@ -244,27 +244,27 @@ FOR /L %%B IN (0,1,%gpu%) DO (
     IF %clocks_reboot% GTR 0 ( 
 	    if !clocks.gr%%B! LEQ %clocks_reboot% ( 
             set text=Abnormal frequency *GPU%%B*
-            goto :endif 
-			)
-    )	
+            goto :endif
+	    )
+    )
     IF %temperature_reboot% GTR 0 (
      	if !temperature.gpu%%B! GEQ %temperature_reboot% (
             set text=Abnormal temperature *GPU%%B*
             goto :endif 
-		)
-	)
-	IF %fan_reboot% GTR 0 (
+	    )
+    )
+    IF %fan_reboot% GTR 0 (
         if !fan.speed%%B! LEQ %fan_reboot% (
             set text=Abnormal fan speed *GPU%%B*
             goto :endif 
-		)
-	)	
+	    )
+    )
     IF %power_reboot% GTR 0 (
         if !power_draw%%B! LEQ %power_reboot% (
             set text=Abnormal power draw *GPU%%B*
             goto :endif 
 	    )
-	)	
+    )	
 )	
 EXIT /B
 

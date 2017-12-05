@@ -12,7 +12,7 @@ Watchdog for NVIDIA miners with Telegram notifications & Logs
 # **Instruction:**
 1. Unpack and save files and folders where you need. Do not change the NirCMD, Config folders, and don't delete tm.ps1 file.
 2. Modify the beginning of .bat file with variables set-up as per comments in .bat file.
-3. Changes reboot_on variable to 0 or 1 so WatchDog will work with or without reboot of Rig 
+3. Change *reboot_on* variable to 0 or 1 so WatchDog will work with or without reboot of Rig 
 4. Add the WatchDog to autostart upon set-up of required variables.
 
 # **Telegram instruction (bot registration and token retrieval):**

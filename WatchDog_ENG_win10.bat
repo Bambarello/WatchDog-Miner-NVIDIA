@@ -17,8 +17,15 @@ SET clocks_reboot=0
 SET temperature_reboot=0
 SET fan_reboot=0
 SET power_reboot=0
-
+REM ================ Temperature limit detection: 0 - off; Value - will send message if detected (temperature - above or equal to selected)
+SET temperature_inform=85
+SET tempIssueCountMax=10
+SET tempIssueCount=0
+REM ================ Set number of GPUs to monitor: 0 - all GPUs will be monitored; Value - will monitor average for selected # of GPUs
+SET NumberGPUsToMonitor=0
+REM ====================================================================================================================================
 SETLOCAL ENABLEDELAYEDEXPANSION
+IF NOT EXIST "Logs" MD Logs && ECHO Folder Logs created.
 set log_file=Logs\%date:~6,4%%date:~3,2%%date:~0,2%.WatchDog.log
 for /f "tokens=*" %%A in ('type "Config\cfg.ini"') do set %%A
 title=WatchDog %computername%
@@ -26,13 +33,16 @@ echo Please wait...
 timeout 1 > nul
 PATH=%PATH%;"%PROGRAMFILES%\NVIDIA Corporation\NVSMI\"
 for /f %%a in ('nvidia-smi --query-gpu^=count --format^=csv,noheader') do @set /a mygpu=%%a
+for /F %%p in ('nvidia-smi --query-gpu^=driver_version --format^=csv^,noheader^,nounits') do set driver_version=%%p
 set /a lines=14+%mygpu%
 mode con:cols=41 lines=%lines%
 cls
 echo Please wait...
-for /F %%p in ('nvidia-smi --query-gpu^=driver_version --format^=csv^,noheader^,nounits') do set driver_version=%%p
-set /a gpu=%mygpu%-1
-set t0=%date%  %time:~-11,8%
+SET /a gpu=%NumberGPUsToMonitor%-1
+IF %NumberGPUsToMonitor% EQU 0 SET /a gpu=%mygpu%-1
+SET /a delta=105*%gpu%/%mygpu%
+IF %mygpu% EQU 1 set /a delta=80
+SET t0=%date%  %time:~-11,8%
 For /F "Tokens=1 Delims=." %%i In ('WMIC OS Get LocalDateTime^|Find "."') Do Set Time=%%i
 Set M0=1%Time:~4,2%
 Set D0=1%Time:~6,2%
@@ -42,8 +52,6 @@ Set /a nM0=%M0%-100
 Set /a nD0=%D0%-100
 Set /a nH0=%H0%-100
 Set /a nMN0=%MN%-100
-set /a delta=105*%gpu%/%mygpu%
-if %mygpu% EQU 1 set /a delta=80
 
 :begin
 cls  
@@ -85,9 +93,9 @@ ECHO.
 ECHO [92m            Mining is working[0m
 ECHO [97m        %DiffTimeDay% days %DiffTimeHour% hours %DiffTimeMin% minutes[0m
 IF %RigIssueCount% EQU 0 (
-    ECHO [92m            Rig issues: %RigIssueCount% / %RigIssueCountMax%[0m
+    ECHO [92m            Rig issues %RigIssueCount% of %RigIssueCountMax%[0m
     ) ELSE (
-    ECHO [91m            Rig issues: %RigIssueCount% / %RigIssueCountMax%[0m
+    ECHO [91m            Rig issues %RigIssueCount% of %RigIssueCountMax%[0m
 )
 ECHO.
 ECHO        Driver: %driver_version%  Limit: %delta%%%
@@ -104,7 +112,16 @@ echo [97m    GPU:   MHz:   Temp   Fan:   Power[0m
 FOR /L %%B IN (0,1,%gpu%) DO (
     if !temperature.gpu%%B! LEQ 69 set /a colortemp=92
     if !temperature.gpu%%B! GTR 69 set /a colortemp=93
-    if !temperature.gpu%%B! GEQ 75 set /a colortemp=95  
+    if !temperature.gpu%%B! GEQ 75 set /a colortemp=95
+	IF !temperature.gpu%%B! GEQ %temperature_inform% (
+	    SET /a colortemp=101
+	    SET /a tempIssueCount=%tempIssueCount%+1
+    	IF %tempIssueCount% GEQ %tempIssueCountMax% (
+    		SET text=*%computername%:* *GPU%%B* temperature *!temperature.gpu%%B!* C
+	    	powershell.exe -ExecutionPolicy Bypass -File tm.ps1 -Verb RunAs
+		    IF %tempIssueCount% GEQ %tempIssueCountMax% set /a tempIssueCount=0
+	    )
+    )
     echo [97m    GPU%%B   !clocks.gr%%B![0m  [!colortemp!;1m !temperature.gpu%%B! C[0m  [97m !fan.speed%%B! %%   !power_draw%%B! W[0m  
 )   
 echo.
@@ -207,7 +224,8 @@ echo [%date%][%time:~-11,8%] Mining issue. %computername% restarted. >> %log_fil
 echo ------------------------------------------------------------------ >> %log_file%
 
 :screenshot
-NirCMD\nircmd.exe savescreenshot "Logs\%date:~6,4%%date:~3,2%%date:~0,2%-%time::=-%.WatchDog_Screenshot.png"
+IF NOT EXIST "Screenshots" MD Screenshots && ECHO     Folder Screenshots created.
+powershell.exe -command "Add-Type -AssemblyName System.Windows.Forms; Add-type -AssemblyName System.Drawing; $Screen = [System.Windows.Forms.SystemInformation]::VirtualScreen; $bitmap = New-Object System.Drawing.Bitmap $Screen.Width, $Screen.Height; $graphic = [System.Drawing.Graphics]::FromImage($bitmap); $graphic.CopyFromScreen($Screen.Left, $Screen.Top, 0, 0, $bitmap.Size); $bitmap.Save('Screenshots\%date:~6,4%%date:~3,2%%date:~0,2%-%time::=-%.WatchDog.Screenshot.jpg');" 2>NUL 1>&2
 
 FOR /L %%A IN (%RebootTimer%,-1,0) DO (
     cls
@@ -244,27 +262,27 @@ FOR /L %%B IN (0,1,%gpu%) DO (
     IF %clocks_reboot% GTR 0 ( 
 	    if !clocks.gr%%B! LEQ %clocks_reboot% ( 
             set text=Abnormal frequency *GPU%%B*
-            goto :endif
-	    )
-    )
+            goto :endif 
+			)
+    )	
     IF %temperature_reboot% GTR 0 (
      	if !temperature.gpu%%B! GEQ %temperature_reboot% (
             set text=Abnormal temperature *GPU%%B*
             goto :endif 
-	    )
-    )
-    IF %fan_reboot% GTR 0 (
+		)
+	)
+	IF %fan_reboot% GTR 0 (
         if !fan.speed%%B! LEQ %fan_reboot% (
             set text=Abnormal fan speed *GPU%%B*
             goto :endif 
-	    )
-    )
+		)
+	)	
     IF %power_reboot% GTR 0 (
         if !power_draw%%B! LEQ %power_reboot% (
             set text=Abnormal power draw *GPU%%B*
             goto :endif 
 	    )
-    )	
+	)	
 )	
 EXIT /B
 

@@ -6,11 +6,11 @@ Watchdog for NVIDIA miners with Telegram notifications & Logs
 * Reboot if GPUs loading is below theshold for Rig
 * Maintain your logs in the Logs folder. Errors, warnings, messages regarding successful start.
 * GPUs frequency, fan speed, overheat, power consumption alert and reboot.
-* Taking screenshot before reboot (requires NirCMD)
+* Taking screenshot before reboot (previously required NirCMD, now you may delete NirCMD, as PowerShell function used)
 * Telegram notifications in case of rig issue, not working GPUs, Rig reboot.
 
 # **Instruction:**
-1. Unpack and save files and folders where you need. Do not change the NirCMD, Config folders, and don't delete tm.ps1 file.
+1. Unpack and save files and folders where you need. Ensure you've downloaded Config folder and don't delete tm.ps1 file.
 2. Modify the beginning of .bat file with variables set-up as per comments in .bat file.
 3. Change *reboot_on* variable to 0 or 1 so WatchDog will work with or without reboot of Rig 
 4. Add the WatchDog to autostart upon set-up of required variables.

@@ -21,8 +21,8 @@ REM ================ Temperature limit detection: 0 - off; Value - will send mes
 SET temperature_inform=85
 SET tempIssueCountMax=10
 SET tempIssueCount=0
-REM ================ Set number of GPUs to monitor: 0 - all GPUs will be monitored; Value - will monitor average for selected # of GPUs
-SET NumberGPUsToMonitor=0
+REM ================ Set Average GPUs loading to monitor: 0 - all GPUs will be monitored; Value (in percent) - use in case some GPUs are off, or due to mining algorithm  
+SET DeltaToMonitor=0
 REM ====================================================================================================================================
 SETLOCAL ENABLEDELAYEDEXPANSION
 IF NOT EXIST "Logs" MD Logs && ECHO Folder Logs created.
@@ -38,9 +38,9 @@ set /a lines=14+%mygpu%
 mode con:cols=41 lines=%lines%
 cls
 echo Please wait...
-SET /a gpu=%NumberGPUsToMonitor%-1
-IF %NumberGPUsToMonitor% EQU 0 SET /a gpu=%mygpu%-1
-SET /a delta=105*%gpu%/%mygpu%
+SET /a gpu=%mygpu%-1
+SET /a delta=%DeltaToMonitor%
+IF %DeltaToMonitor% EQU 0 SET /a delta=105*%gpu%/%mygpu%
 IF %mygpu% EQU 1 set /a delta=80
 SET t0=%date%  %time:~-11,8%
 For /F "Tokens=1 Delims=." %%i In ('WMIC OS Get LocalDateTime^|Find "."') Do Set Time=%%i
